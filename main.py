@@ -3,11 +3,13 @@ import sys                                  #to control exit command
 from typing import Mapping                                  
 import pygame                               #library for making of a game
 from pygame.locals import *                 #basic pygame imports
+import os
 
 
 
 
 # setting up the globaL variables
+sourceFileDir = os.path.dirname(os.path.abspath(__file__))
 FPS = 32                                    #frames per second
 SCREENWIDTH = 500
 SCREENHEIGHT = 700
@@ -15,9 +17,10 @@ SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
 GROUNDY= SCREENHEIGHT * 0.8    
 GAME_IMAGES = {}
 GAME_AUDIO = {}
-PLAYER = "media//images//bird_fly.png"
-BACKGROUND = "media//images//bg_img.png"
-PIPE = "media//images//pipe.png"
+PLAYER = os.path.join(sourceFileDir, 'media/images/bird_fly.png')
+BACKGROUND = os.path.join(sourceFileDir, 'media/images/bg_img.png')
+PIPE = os.path.join(sourceFileDir, 'media/images/pipe.png')
+
 
 
 
@@ -115,7 +118,7 @@ def mainGame():
         for pipe in upperPipes:
             pipeMidPos = pipe['x'] + GAME_IMAGES['pipe'][0].get_width()/2
             if pipeMidPos <= PlayerMidPos < pipeMidPos + 4:
-                score+=1
+                score+=2
                 print(f"Your score is {score}")
                 GAME_AUDIO['point'].play()
 
@@ -185,9 +188,10 @@ def mainGame():
 def getRandomPipe():
     # generating poitions of pipe to display on the screen
     pipeHeight = GAME_IMAGES['pipe'][0].get_height()                # getting the height of pipe
-    offset = SCREENHEIGHT/3                                         # setting a particular distance that should be in the screen
-    y2 = offset + random.randrange(0, int(SCREENHEIGHT - GAME_IMAGES['base'].get_height()  - 1.2 *offset))
-    pipeX = SCREENHEIGHT + 12
+    offset = SCREENHEIGHT/4.5                                # setting a particular distance that should be in the screen
+    y2 = offset + random.randrange(0, int(SCREENHEIGHT - GAME_IMAGES['base'].get_height()  - 1.3 *offset))
+    pipeX = SCREENHEIGHT + 10
+
     y1 = pipeHeight - y2 + offset                                     
     pipe = [ 
         {'x' : pipeX, 'y' : -y1},                                   # (-) because this is for the upper pipe
@@ -231,34 +235,59 @@ if __name__ == "__main__":
     pygame.init()                           # initializes all modules of pygame
     fpsclock = pygame.time.Clock()          
     pygame.display.set_caption("Flappy Bird by A_S")
+    
+
+    fondImgPath0 = os.path.join(sourceFileDir, 'media/images/0.png')
+    fondImgPath1 = os.path.join(sourceFileDir, 'media/images/1.png')
+    fondImgPath2 = os.path.join(sourceFileDir, 'media/images/2.png')
+    fondImgPath3 = os.path.join(sourceFileDir, 'media/images/3.png')
+    fondImgPath4 = os.path.join(sourceFileDir, 'media/images/4.png')
+    fondImgPath5 = os.path.join(sourceFileDir, 'media/images/5.png')
+    fondImgPath6 = os.path.join(sourceFileDir, 'media/images/6.png')
+    fondImgPath7 = os.path.join(sourceFileDir, 'media/images/7.png')
+    fondImgPath8 = os.path.join(sourceFileDir, 'media/images/8.png')
+    fondImgPath9 = os.path.join(sourceFileDir, 'media/images/9.png')
+
+
     # now making the dictionary key contain tuple values
     GAME_IMAGES['numbers'] = (
-        pygame.image.load("media//images//0.png").convert_alpha(),            # convert alpha is used for fast rendering of images
-        pygame.image.load("media//images//1.png").convert_alpha(),
-        pygame.image.load("media//images//2.png").convert_alpha(),
-        pygame.image.load("media//images//3.png").convert_alpha(),
-        pygame.image.load("media//images//4.png").convert_alpha(),
-        pygame.image.load("media//images//5.png").convert_alpha(),
-        pygame.image.load("media//images//6.png").convert_alpha(),
-        pygame.image.load("media//images//7.png").convert_alpha(),
-        pygame.image.load("media//images//8.png").convert_alpha(),
-        pygame.image.load("media//images//9.png").convert_alpha()
+        pygame.image.load(fondImgPath0).convert_alpha(),
+        pygame.image.load(fondImgPath1).convert_alpha(),
+        pygame.image.load(fondImgPath2).convert_alpha(),
+        pygame.image.load(fondImgPath3).convert_alpha(),
+        pygame.image.load(fondImgPath4).convert_alpha(),
+        pygame.image.load(fondImgPath5).convert_alpha(),
+        pygame.image.load(fondImgPath6).convert_alpha(),
+        pygame.image.load(fondImgPath7).convert_alpha(),
+        pygame.image.load(fondImgPath8).convert_alpha(),
+        pygame.image.load(fondImgPath9).convert_alpha(),
     )
 
+    fondImgPath_msg = os.path.join(sourceFileDir, 'media/images/msg.png')
+    fondImgPath_base = os.path.join(sourceFileDir, 'media/images/base_img.png')
+    fondImgPath_over = os.path.join(sourceFileDir, 'media/images/over.png')
 
-    GAME_IMAGES['base'] = pygame.image.load("media//images//base_img.png").convert_alpha()
-    GAME_IMAGES['message'] = pygame.image.load("media//images//msg.png").convert_alpha()
-    GAME_IMAGES['over'] = pygame.image.load("media//images//over.png").convert_alpha()
+    GAME_IMAGES['base'] = pygame.image.load(fondImgPath_base).convert_alpha()
+    GAME_IMAGES['message'] = pygame.image.load(fondImgPath_msg).convert_alpha()
+    GAME_IMAGES['over'] = pygame.image.load(fondImgPath_over).convert_alpha()
     GAME_IMAGES['pipe'] = (
         pygame.transform.rotate(pygame.image.load(PIPE).convert_alpha(), 180),     #flips the image
         pygame.image.load(PIPE).convert_alpha()
     )
 
-    GAME_AUDIO['die'] = pygame.mixer.Sound("media//audio//die.wav")
-    GAME_AUDIO['hit'] = pygame.mixer.Sound("media//audio//hit.wav")
-    GAME_AUDIO['point'] = pygame.mixer.Sound("media//audio//point.wav")
-    GAME_AUDIO['swoosh'] = pygame.mixer.Sound("media//audio//swoosh.wav")
-    GAME_AUDIO['wing'] = pygame.mixer.Sound("media//audio//wing.wav")
+
+    fondAudPath_die = os.path.join(sourceFileDir, 'media/audio/die.wav')
+    fondAudPath_hit = os.path.join(sourceFileDir, 'media/audio/hit.wav')
+    fondAudPath_point = os.path.join(sourceFileDir, 'media/audio/point.wav')
+    fondAudPath_swoosh = os.path.join(sourceFileDir, 'media/audio/swoosh.wav')
+    fondAudPath_wing = os.path.join(sourceFileDir, 'media/audio/wing.wav')
+
+
+    GAME_AUDIO['die'] = pygame.mixer.Sound(fondAudPath_die)
+    GAME_AUDIO['hit'] = pygame.mixer.Sound(fondAudPath_hit)
+    GAME_AUDIO['point'] = pygame.mixer.Sound(fondAudPath_point)
+    GAME_AUDIO['swoosh'] = pygame.mixer.Sound(fondAudPath_swoosh)
+    GAME_AUDIO['wing'] = pygame.mixer.Sound(fondAudPath_wing)
 
     GAME_IMAGES['background'] = pygame.image.load(BACKGROUND).convert()         # not used alpha because we don't need to run background image
     GAME_IMAGES['player'] = pygame.image.load(PLAYER).convert_alpha()
