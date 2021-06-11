@@ -100,7 +100,7 @@ def mainGame():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN or (event.key == K_SPACE and event.key == K_UP):
+            if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
                 if playery >0:
                     playerVelo_Y = playerFlapAcc
                     PlayerFlapped = True
