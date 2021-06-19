@@ -4,6 +4,7 @@ from typing import Mapping
 import pygame                               #library for making of a game
 from pygame.locals import *                 #basic pygame imports
 import os
+#import time
 
 
 
@@ -12,13 +13,18 @@ import os
 sourceFileDir = os.path.dirname(os.path.abspath(__file__))
 FPS = 32                                    #frames per second
 SCREENWIDTH = 500
-SCREENHEIGHT = 700
-SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT)) 
-GROUNDY= SCREENHEIGHT * 0.8    
+SCREENHEIGHT = 650
+SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
+gameIcon_path = os.path.join(sourceFileDir, 'media/images/bird_fly.png') 
+gameIcon = pygame.image.load(gameIcon_path)
+pygame.display.set_icon(gameIcon)
+
+
+GROUNDY= SCREENHEIGHT * 0.75    
 GAME_IMAGES = {}
 GAME_AUDIO = {}
 PLAYER = os.path.join(sourceFileDir, 'media/images/bird_fly.png')
-BACKGROUND = os.path.join(sourceFileDir, 'media/images/bg_img.png')
+BACKGROUND = os.path.join(sourceFileDir, 'media/images/bg_img.jpg')
 PIPE = os.path.join(sourceFileDir, 'media/images/pipe.png')
 
 
@@ -33,7 +39,8 @@ def welcome_screen():
     # defining position via coordinates 
     messagex = int((SCREENWIDTH - GAME_IMAGES['message'].get_height())/1.1)
     messagey = int(SCREENHEIGHT*0.20)
-    basex = 0
+    basex = -5
+    GAME_AUDIO['song'].play(-1)
     
     while True:
         for event in pygame.event.get():                # getting access to all events of pygame
@@ -44,12 +51,13 @@ def welcome_screen():
                 sys.exit()
 
             elif event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
+                GAME_AUDIO['song'].stop()
                 return
 
             else:
                 SCREEN.blit(GAME_IMAGES['background'], (0, 0))                      # takes coordinates & images                
                 SCREEN.blit(GAME_IMAGES['message'], (messagex, messagey))   
-                SCREEN.blit(GAME_IMAGES['base'], (basex, GROUNDY))   
+                SCREEN.blit(GAME_IMAGES['base'], (basex, GROUNDY)) 
                 pygame.display.update()                                             # important command becuase without executing this....program will not shift to the next screen
                 fpsclock.tick(FPS)                                                  # controlling or finally setting the fps rate in the program
 
@@ -60,12 +68,18 @@ def welcome_screen():
 
 
 def mainGame():
+    
     score = 0
     playerx = int(SCREENWIDTH/5)
     playery = int(SCREENWIDTH/5)
-    basex = 0
+    basex = -5
     game_overx = int((SCREENWIDTH - GAME_IMAGES['over'].get_height())/2.5)
-    game_overy = int(SCREENHEIGHT/4.5)
+    game_overy = int(SCREENHEIGHT/3)
+
+    #reading highscore
+    with open('high_score.txt','r') as file:
+        hahahaha = int(file.read())
+    
     
 
     # creating two pipes
@@ -75,8 +89,8 @@ def mainGame():
 
     # making of a list of upper pipes that will contain two upper pipes i.e. one from the list Pipe1 & second from the list Pipe2
     upperPipes = [
-        {'x' : SCREENWIDTH + 200, 'y' : Pipe1[0]['y']},
-        {'x' : SCREENWIDTH + 200 + (SCREENWIDTH/2), 'y' : Pipe2[0]['y']},
+        {'x' : SCREENWIDTH + 100, 'y' : Pipe1[0]['y']},
+        {'x' : SCREENWIDTH + 100 + (SCREENWIDTH/2), 'y' : Pipe2[0]['y']},
     ]
 
 
@@ -96,11 +110,12 @@ def mainGame():
     PlayerFlapped = False                         # it will become true when bird will flap
 
     while True:
+        
         for event in pygame.event.get():
             if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN or (event.key == K_SPACE and event.key == K_UP):
+            if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
                 if playery >0:
                     playerVelo_Y = playerFlapAcc
                     PlayerFlapped = True
@@ -121,6 +136,10 @@ def mainGame():
                 score+=2
                 print(f"Your score is {score}")
                 GAME_AUDIO['point'].play()
+                #high score
+                if hahahaha < score:
+                    hahahaha = score
+                print(f"HIGHSCORE : {hahahaha}")
 
 
         if playerVelo_Y < playerMax_Y and not PlayerFlapped:            # if player's y velocity is less than its max velocity and bird is not flapping
@@ -161,8 +180,10 @@ def mainGame():
 
         SCREEN.blit(GAME_IMAGES['base'], (basex, GROUNDY))
         SCREEN.blit(GAME_IMAGES['player'], (playerx, playery))
+        SCREEN.blit(GAME_IMAGES['hiscr'], (10,SCREENHEIGHT*0.93))
 
         myDgits = [int(x) for x in list(str (score))]
+        myHigh = [int(x) for x in list(str(hahahaha))]
         width = 0
         
         for digit in myDgits:
@@ -173,8 +194,18 @@ def mainGame():
             SCREEN.blit(GAME_IMAGES['numbers'][digit], (Xoffset, SCREENHEIGHT * 0.12 ))
             Xoffset += GAME_IMAGES['numbers'][digit].get_width()                        # blitting after 1st digit4
 
+    
+        xoff = 20 + GAME_IMAGES['hiscr'].get_width()  #loop to blit high score
+        for digit in myHigh:
+            SCREEN.blit(GAME_IMAGES['highDigi'][digit], (xoff, SCREENHEIGHT*0.93 ))
+            xoff += GAME_IMAGES['highDigi'][digit].get_width()
+
+
         if is_collide(playerx, playery, upperPipes, lowerPipes):
+            with open('high_score.txt','w') as file:
+                file.write(str(hahahaha))
             SCREEN.blit(GAME_IMAGES['over'], (game_overx, game_overy))
+            #time.sleep(2)
         
         pygame.display.update()
         fpsclock.tick(FPS)
@@ -188,9 +219,9 @@ def mainGame():
 def getRandomPipe():
     # generating poitions of pipe to display on the screen
     pipeHeight = GAME_IMAGES['pipe'][0].get_height()                # getting the height of pipe
-    offset = SCREENHEIGHT/4.5                                # setting a particular distance that should be in the screen
-    y2 = offset + random.randrange(0, int(SCREENHEIGHT - GAME_IMAGES['base'].get_height()  - 1.3 *offset))
-    pipeX = SCREENHEIGHT + 10
+    offset = SCREENHEIGHT/5                                # setting a particular distance that should be in the screen
+    y2 = offset + random.randrange(0, int(SCREENHEIGHT - GAME_IMAGES['base'].get_height()  - 0.5 *offset))
+    pipeX = SCREENHEIGHT + 20
 
     y1 = pipeHeight - y2 + offset                                     
     pipe = [ 
@@ -207,34 +238,32 @@ def getRandomPipe():
 
 
 def is_collide(playerx, playery, upperPipes, lowerPipes):
-    if playery > GROUNDY -65 or playery < 0:                    # means when the playery value becomes negative
-        GAME_AUDIO['die'].play()
+    if playery > GROUNDY -50 or playery < 0:                    # means when the playery value becomes negative
+        GAME_AUDIO['hit'].play()
         return True
 
     for pipe in upperPipes:
         pipeHeight = GAME_IMAGES['pipe'][0].get_height()
         if (playery < pipeHeight + pipe['y'] and abs(playerx - pipe['x']) < GAME_IMAGES['pipe'][0].get_width()):            # simply means when the player stucks in the height of pipe, it will crash
-            GAME_AUDIO['die'].play()
+            GAME_AUDIO['hit'].play()
             return True
 
 
     for pipe in lowerPipes:
-        if (playery + GAME_IMAGES['player'].get_height() > pipe['y']) and abs (playerx - pipe['x']) < GAME_IMAGES['pipe'][0].get_width():
-            GAME_AUDIO['die'].play()
+        if (playery + GAME_IMAGES['player'].get_height() > pipe['y']) and abs(playerx - pipe['x']) < GAME_IMAGES['pipe'][0].get_width():
+            GAME_AUDIO['hit'].play()
             return True
 
     return False
 
 
-
 #--------------------------------------------------------------MAIN FUNCTION--------------------------------------------------------------#
-
 
 
 if __name__ == "__main__":
     pygame.init()                           # initializes all modules of pygame
     fpsclock = pygame.time.Clock()          
-    pygame.display.set_caption("Flappy Bird by A_S")
+    pygame.display.set_caption("Flappy Bird by A&S")
     
 
     fondImgPath0 = os.path.join(sourceFileDir, 'media/images/0.png')
@@ -266,6 +295,7 @@ if __name__ == "__main__":
     fondImgPath_msg = os.path.join(sourceFileDir, 'media/images/msg.png')
     fondImgPath_base = os.path.join(sourceFileDir, 'media/images/base_img.png')
     fondImgPath_over = os.path.join(sourceFileDir, 'media/images/over.png')
+    fondImgPath_hiscr = os.path.join(sourceFileDir, 'media/images/hi_scr.png')
 
     GAME_IMAGES['base'] = pygame.image.load(fondImgPath_base).convert_alpha()
     GAME_IMAGES['message'] = pygame.image.load(fondImgPath_msg).convert_alpha()
@@ -274,6 +304,32 @@ if __name__ == "__main__":
         pygame.transform.rotate(pygame.image.load(PIPE).convert_alpha(), 180),     #flips the image
         pygame.image.load(PIPE).convert_alpha()
     )
+    GAME_IMAGES['hiscr'] = pygame.image.load(fondImgPath_hiscr).convert_alpha()
+
+
+    fondImgPath00 = os.path.join(sourceFileDir, 'media/images/00.png')
+    fondImgPath10 = os.path.join(sourceFileDir, 'media/images/10.png')
+    fondImgPath20 = os.path.join(sourceFileDir, 'media/images/20.png')
+    fondImgPath30 = os.path.join(sourceFileDir, 'media/images/30.png')
+    fondImgPath40 = os.path.join(sourceFileDir, 'media/images/40.png')
+    fondImgPath50 = os.path.join(sourceFileDir, 'media/images/50.png')
+    fondImgPath60 = os.path.join(sourceFileDir, 'media/images/60.png')
+    fondImgPath70 = os.path.join(sourceFileDir, 'media/images/70.png')
+    fondImgPath80 = os.path.join(sourceFileDir, 'media/images/80.png')
+    fondImgPath90 = os.path.join(sourceFileDir, 'media/images/90.png')
+
+    GAME_IMAGES['highDigi'] = (
+        pygame.image.load(fondImgPath00).convert_alpha(),
+        pygame.image.load(fondImgPath10).convert_alpha(),
+        pygame.image.load(fondImgPath20).convert_alpha(),
+        pygame.image.load(fondImgPath30).convert_alpha(),
+        pygame.image.load(fondImgPath40).convert_alpha(),
+        pygame.image.load(fondImgPath50).convert_alpha(),
+        pygame.image.load(fondImgPath60).convert_alpha(),
+        pygame.image.load(fondImgPath70).convert_alpha(),
+        pygame.image.load(fondImgPath80).convert_alpha(),
+        pygame.image.load(fondImgPath90).convert_alpha(),
+    )
 
 
     fondAudPath_die = os.path.join(sourceFileDir, 'media/audio/die.wav')
@@ -281,6 +337,7 @@ if __name__ == "__main__":
     fondAudPath_point = os.path.join(sourceFileDir, 'media/audio/point.wav')
     fondAudPath_swoosh = os.path.join(sourceFileDir, 'media/audio/swoosh.wav')
     fondAudPath_wing = os.path.join(sourceFileDir, 'media/audio/wing.wav')
+    fondAudPath_song = os.path.join(sourceFileDir, 'media/audio/song.mp3')
 
 
     GAME_AUDIO['die'] = pygame.mixer.Sound(fondAudPath_die)
@@ -288,6 +345,7 @@ if __name__ == "__main__":
     GAME_AUDIO['point'] = pygame.mixer.Sound(fondAudPath_point)
     GAME_AUDIO['swoosh'] = pygame.mixer.Sound(fondAudPath_swoosh)
     GAME_AUDIO['wing'] = pygame.mixer.Sound(fondAudPath_wing)
+    GAME_AUDIO['song'] = pygame.mixer.Sound(fondAudPath_song)
 
     GAME_IMAGES['background'] = pygame.image.load(BACKGROUND).convert()         # not used alpha because we don't need to run background image
     GAME_IMAGES['player'] = pygame.image.load(PLAYER).convert_alpha()
@@ -295,4 +353,3 @@ if __name__ == "__main__":
     while True:
         welcome_screen()
         mainGame()
-    
